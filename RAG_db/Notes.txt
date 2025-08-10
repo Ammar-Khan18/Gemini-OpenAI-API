@@ -1,0 +1,33 @@
+Step 1 — Store data in SQLite
+SQLite is our source of truth.
+Holds structured employee records: id, name, department, role.
+
+Step 2 — Embed DB rows into a Vector Database (ChromaDB)
+Each row is turned into a text string (e.g., "Name: Alice, Department: Engineering, Role: Manager").
+We create embeddings (high-dimensional vectors) using Gemini’s embedding-001 model.
+These embeddings are stored in ChromaDB for fast similarity search.
+
+Step 3 — Query ChromaDB
+When the user asks a question:
+We create an embedding for the question.
+ChromaDB finds the most similar rows (top N matches).
+
+Step 4 — Send relevant context to the LLM
+We pass only the top matches into Gemini’s prompt.
+The LLM now answers the question grounded in your DB’s real data.
+
+I chose ChromaDB because:
+| Reason                            | Benefit                                                         |
+| --------------------------------- | --------------------------------------------------------------- |
+| **Open-source & free**            | No paid hosting needed; you can run it locally.                 |
+| **Persistent storage**            | Keeps embeddings on disk; no need to reprocess data every time. |
+| **Integrates easily with Python** | Simple `add()` and `query()` methods.                           |
+| **Fast vector search**            | Optimized for similarity lookups.                               |
+| **Pluggable embeddings**          | We can use Gemini, OpenAI, or any custom embedding model.       |
+
+SQLite works for exact match queries (e.g., WHERE department='Engineering').
+But our goal is semantic search:
+User might ask: "Who are the engineers?"
+→ In SQLite, you’d need to match "Engineering".
+→ In RAG, the model can understand synonyms like "software developers" and still find relevant rows.
+RAG allows natural language + fuzzy meaning queries, not just exact keywords.
